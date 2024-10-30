@@ -25,8 +25,7 @@ void stop(void) {
     }
 }
 
-////// PILE COMMANDES //////
-
+////// ACTIONS PILE COMMANDES //////
 int addition(pile_cmd *pile) {
     int a, b;
 
@@ -75,37 +74,13 @@ void effectuer_mesure(pile_cmd *pile) {
 void execution_conditionnelle(pile_cmd *pile, int *ret, int *profondeur);
 void executer_commandes(char commande, pile_cmd *pile_commandes, int *ret, int *profondeur);
 
-pile_cmd *separer_groupe_commandes(pile_cmd *pile) {
-    int profondeur;
-    char c;
-    pile_cmd *groupe_cmd;
-
-    groupe_cmd = init_pile();
-    profondeur = 0;
-    c = depiler_char(pile); // c == '{'
-    // On empile tous les caractères jusqu'a '{' dans la pile F
-    while (true) {
-        c = depiler_char(pile);
-        if (c == '}') profondeur++;
-        if (c == '{') {
-            if (profondeur == 0) break;
-            profondeur--;
-        }
-        //if (c == '?') execution_conditionnelle(F, ret, profondeur);
-        empiler_char(groupe_cmd, c);
-    }
-
-    return groupe_cmd;
-}
-
 void execution_conditionnelle(pile_cmd *pile, int *ret, int *profondeur) {
     int n;
     char c;
     pile_cmd *V, *F;
-    cellule_pile_cmd *cel;
 
-    F = separer_groupe_commandes(pile);
-    V = separer_groupe_commandes(pile);
+    F = depiler_groupe_commandes(pile);
+    V = depiler_groupe_commandes(pile);
 
     // On récupère la valeur de n
     c = depiler_char(pile);
@@ -116,19 +91,22 @@ void execution_conditionnelle(pile_cmd *pile, int *ret, int *profondeur) {
         executer_commandes(c, pile, ret, profondeur);
         n = depiler_int(pile);
     }
-    
+
     // On remplace la pile de commandes par la pile à exécuter
     pile = n == 0 ? F : V;
 
     // On exécute les commandes stockées dans la pile
-    cel = pile->tete;
-    while (cel != NULL) {
-        printf("%c\n", cel->valeur);
-        if (cel->type == CHAR) {
-            executer_commandes(cel->valeur, pile, ret, profondeur);
-        }
-        cel = cel->suivant;
-    }
+    executer_groupe_commandes(pile, ret, profondeur);
+}
+
+void echange(pile_cmd *pile) {
+    pile_cmd *A, *B;
+
+    A = depiler_groupe_commandes(pile);
+    B = depiler_groupe_commandes(pile);
+
+    empiler_groupe(pile, A);
+    empiler_groupe(pile, B);
 }
 
 void ignore_commande(pile_cmd *pile) {
@@ -185,6 +163,15 @@ void executer_commandes(char commande, pile_cmd *pile_commandes, int *ret, int *
         if (*profondeur > 0) empiler_char(pile_commandes, commande);
         else effectuer_mesure(pile_commandes);
         break;
+
+    case 'E':
+        if (*profondeur > 0) empiler_char(pile_commandes, commande);
+        else echange(pile_commandes);
+        break;
+
+    case '!':
+        if (*profondeur > 0) empiler_char(pile_commandes, commande);
+        else executer_groupe_commandes(depiler_groupe_commandes(pile_commandes), ret, profondeur);
 
     case '+':
         if (*profondeur > 0) empiler_char(pile_commandes, commande);
