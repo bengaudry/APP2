@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <ctype.h>
 #include "pile.h"
 #include "interprete.h"
 
@@ -45,6 +46,8 @@ void empiler_groupe(pile_cmd *pile, pile_cmd *groupe) {
 
 cellule_pile_cmd *depiler(pile_cmd *pile) {
     cellule_pile_cmd *ancienne_tete;
+
+    if (pile->tete == NULL) return NULL; // Vérifie si la pile est vide
 
     ancienne_tete = pile->tete;
     pile->tete = ancienne_tete->suivant;

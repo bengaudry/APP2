@@ -6,6 +6,7 @@
 #ifdef NCURSES
 #include <ncurses.h>
 #endif
+#include "interprete.h"
 #include "curiosity.h"
 #include "listes.h"
 #include "pile.h"
@@ -67,13 +68,13 @@ void effectuer_mesure(pile_cmd *pile) {
     int direction, resultat;
 
     direction = depiler_int(pile);
+    printf("DIRECTION : %c\n", direction + '0');
     resultat = mesure(direction);
     empiler_int(pile, resultat);
 }
 
-void execution_conditionnelle(pile_cmd *pile, int *ret, int *profondeur);
-void executer_commandes(char commande, pile_cmd *pile_commandes, int *ret, int *profondeur);
 
+/* n V F ? exécute la pile V si n != 0, sinon la pile F */
 void execution_conditionnelle(pile_cmd *pile, int *ret, int *profondeur) {
     int n;
     char c;
@@ -81,7 +82,7 @@ void execution_conditionnelle(pile_cmd *pile, int *ret, int *profondeur) {
 
     F = depiler_groupe_commandes(pile);
     V = depiler_groupe_commandes(pile);
-
+    
     // On récupère la valeur de n
     c = depiler_char(pile);
     if (isdigit(c)) {
@@ -99,6 +100,17 @@ void execution_conditionnelle(pile_cmd *pile, int *ret, int *profondeur) {
     executer_groupe_commandes(pile, ret, profondeur);
 }
 
+void mysterieuze(pile_cmd *pile) {
+    return;
+}
+
+void exec(pile_cmd *pile, int *ret, int *profondeur) {
+    pile_cmd *groupe;
+
+    groupe = depiler_groupe_commandes(pile);
+    executer_groupe_commandes(groupe, ret, profondeur);
+}
+
 void echange(pile_cmd *pile) {
     pile_cmd *A, *B;
 
@@ -109,34 +121,24 @@ void echange(pile_cmd *pile) {
     empiler_groupe(pile, B);
 }
 
+/* Ignore la commande ou le groupe de commandes au sommet de la pile */
 void ignore_commande(pile_cmd *pile) {
-    char c;
-    cellule_pile_cmd *cel;
-    int profondeur_sous_pile;
+    pile_cmd *groupe;
 
-    cel = pile->tete;
-    c = cel->valeur;
-
-    if (c != '}') {
-        cel = depiler(pile);
-        free(cel);
+    if (pile->tete->valeur != '}') {
+        groupe = depiler_groupe_commandes(pile);
+        free(groupe);
+        return;
     }
-    else {
-        profondeur_sous_pile = 1;
-        while (profondeur_sous_pile > 0) {
-            cel = depiler(pile);
-            if (cel->valeur == '}') profondeur_sous_pile++;
-            if (cel->valeur == '{') profondeur_sous_pile--;
-            free(cel);
-        }
-    }
-
+    depiler_char(pile);
 }
 ////////////
 
-
+/* Transforme un char en opération sur la carte */
 void executer_commandes(char commande, pile_cmd *pile_commandes, int *ret, int *profondeur) {
     *ret = REUSSI;
+
+    printf("exec %c\n", commande);
 
     switch (commande) {
     case 'A':
@@ -164,6 +166,11 @@ void executer_commandes(char commande, pile_cmd *pile_commandes, int *ret, int *
         else effectuer_mesure(pile_commandes);
         break;
 
+    case 'Z':
+        if (*profondeur > 0) empiler_char(pile_commandes, commande);
+        else mysterieuze(pile_commandes);
+        break;
+
     case 'E':
         if (*profondeur > 0) empiler_char(pile_commandes, commande);
         else echange(pile_commandes);
@@ -171,7 +178,8 @@ void executer_commandes(char commande, pile_cmd *pile_commandes, int *ret, int *
 
     case '!':
         if (*profondeur > 0) empiler_char(pile_commandes, commande);
-        else executer_groupe_commandes(depiler_groupe_commandes(pile_commandes), ret, profondeur);
+        else exec(pile_commandes, ret, profondeur);
+        break;
 
     case '+':
         if (*profondeur > 0) empiler_char(pile_commandes, commande);
@@ -246,7 +254,6 @@ int interprete(sequence_t *seq_instructions, bool debug) {
         commande = cel_commande->command;
 
         executer_commandes(commande, pile_commandes, &ret, &profondeur);
-        printf("ret: %d\n", ret);
         if (ret == VICTOIRE)
             return VICTOIRE; /* on a atteint la cible */
         if (ret == RATE)
@@ -254,9 +261,9 @@ int interprete(sequence_t *seq_instructions, bool debug) {
 
         /* Affichage pour faciliter le debug */
         afficherCarte();
-        printf("COMMANDE : %c\n", commande);
         printf("Programme: ");
         afficher(seq_instructions);
+        printf("Pile :\n");
         afficher_pile(pile_commandes);
         printf("\n");
         if (debug)
