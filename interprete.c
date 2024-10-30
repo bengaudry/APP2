@@ -82,7 +82,7 @@ void execution_conditionnelle(pile_cmd *pile, int *ret, int *profondeur) {
 
     F = depiler_groupe_commandes(pile);
     V = depiler_groupe_commandes(pile);
-    
+
     // On récupère la valeur de n
     c = depiler_char(pile);
     if (isdigit(c)) {
@@ -171,7 +171,7 @@ void executer_commandes(char commande, pile_cmd *pile_commandes, int *ret, int *
         else mysterieuze(pile_commandes);
         break;
 
-    case 'E':
+    case 'X':
         if (*profondeur > 0) empiler_char(pile_commandes, commande);
         else echange(pile_commandes);
         break;

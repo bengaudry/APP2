@@ -36,12 +36,14 @@ void empiler_groupe(pile_cmd *pile, pile_cmd *groupe) {
     cellule_pile_cmd *cel, *cel_p;
 
     cel = groupe->tete;
+    empiler_char(pile, '{');
     while (cel != NULL) {
         empiler(pile, cel->valeur, cel->type);
         cel_p = cel;
         cel = cel->suivant;
         free(cel_p);
     }
+    empiler_char(pile, '}');
 }
 
 cellule_pile_cmd *depiler(pile_cmd *pile) {
@@ -102,6 +104,9 @@ pile_cmd *depiler_groupe_commandes(pile_cmd *pile) {
 
 void executer_groupe_commandes(pile_cmd *groupe, int *ret, int *profondeur) {
     cellule_pile_cmd *cel;
+
+    printf("groupe : \n");
+    afficher_pile(groupe);
 
     cel = groupe->tete;
     while (cel != NULL) {
