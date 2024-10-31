@@ -33,15 +33,13 @@ void empiler_char(pile_cmd *pile, char c) { empiler(pile, c, CHAR); }
 void empiler_int(pile_cmd *pile, int n) { empiler(pile, n + '0', INT); }
 
 void empiler_groupe(pile_cmd *pile, pile_cmd *groupe) {
-    cellule_pile_cmd *cel, *cel_p;
+    cellule_pile_cmd *cel;
 
     cel = groupe->tete;
     empiler_char(pile, '{');
     while (cel != NULL) {
         empiler(pile, cel->valeur, cel->type);
-        cel_p = cel;
         cel = cel->suivant;
-        free(cel_p);
     }
     empiler_char(pile, '}');
 }
@@ -92,7 +90,8 @@ pile_cmd *depiler_groupe_commandes(pile_cmd *pile) {
         c = depiler_char(pile);
         if (c == '}') profondeur++;
         if (c == '{') {
-            if (profondeur == 0) break;
+            if (profondeur == 0)
+                break;
             profondeur--;
         }
         //if (c == '?') execution_conditionnelle(F, ret, profondeur);
@@ -105,15 +104,11 @@ pile_cmd *depiler_groupe_commandes(pile_cmd *pile) {
 void executer_groupe_commandes(pile_cmd *groupe, int *ret, int *profondeur) {
     cellule_pile_cmd *cel;
 
-    printf("groupe : \n");
-    afficher_pile(groupe);
-
     cel = groupe->tete;
     while (cel != NULL) {
-        printf("%c\n", cel->valeur);
-        if (cel->type == CHAR) {
             executer_commandes(cel->valeur, groupe, ret, profondeur);
-        }
+        // if (cel->type == CHAR) {
+        // }
         cel = cel->suivant;
     }
 }

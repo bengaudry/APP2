@@ -121,6 +121,31 @@ void echange(pile_cmd *pile) {
     empiler_groupe(pile, B);
 }
 
+void clone(pile_cmd *pile) {
+    pile_cmd *groupe;
+    cellule_pile_cmd *cel;
+
+    if (pile->tete->valeur == '}') {
+        // Dépile le groupe de commandes et l'empile deux fois
+        groupe = depiler_groupe_commandes(pile);
+
+        // Empile le groupe deux fois sur la pile principale
+        empiler_groupe(pile, groupe);
+        empiler_groupe(pile, groupe);
+
+        // Libère la mémoire du groupe après avoir transféré les commandes
+        free(groupe);
+    } else {
+        // Si la valeur n'est pas '}', cloner le sommet de la pile normalement
+        cel = depiler(pile);
+        if (cel != NULL) {
+            empiler(pile, cel->valeur, cel->type);
+            empiler(pile, cel->valeur, cel->type);
+            free(cel);
+        }
+    }
+}
+
 /* Ignore la commande ou le groupe de commandes au sommet de la pile */
 void ignore_commande(pile_cmd *pile) {
     pile_cmd *groupe;
@@ -174,6 +199,11 @@ void executer_commandes(char commande, pile_cmd *pile_commandes, int *ret, int *
     case 'X':
         if (*profondeur > 0) empiler_char(pile_commandes, commande);
         else echange(pile_commandes);
+        break;
+
+    case 'C':
+        if (*profondeur > 0) empiler_char(pile_commandes, commande);
+        else clone(pile_commandes);
         break;
 
     case '!':
