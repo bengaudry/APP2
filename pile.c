@@ -85,6 +85,11 @@ pile_cmd *depiler_groupe_commandes(pile_cmd *pile) {
     groupe_cmd = init_pile();
     profondeur = 0;
     c = depiler_char(pile); // c == '{'
+    if (c != '}') {
+        printf("c != '}'\n");
+        empiler(pile, c, CHAR);
+        return NULL;
+    }
     // On empile tous les caractères jusqu'a '{' dans la pile F
     while (true) {
         c = depiler_char(pile);
@@ -94,7 +99,6 @@ pile_cmd *depiler_groupe_commandes(pile_cmd *pile) {
                 break;
             profondeur--;
         }
-        //if (c == '?') execution_conditionnelle(F, ret, profondeur);
         empiler_char(groupe_cmd, c);
     }
 
@@ -106,9 +110,7 @@ void executer_groupe_commandes(pile_cmd *groupe, int *ret, int *profondeur) {
 
     cel = groupe->tete;
     while (cel != NULL) {
-            executer_commandes(cel->valeur, groupe, ret, profondeur);
-        // if (cel->type == CHAR) {
-        // }
+        executer_commande(cel->valeur, groupe, ret, profondeur);
         cel = cel->suivant;
     }
 }

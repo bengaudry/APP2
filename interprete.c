@@ -89,7 +89,7 @@ void execution_conditionnelle(pile_cmd *pile, int *ret, int *profondeur) {
         n = c - '0';
     }
     else {
-        executer_commandes(c, pile, ret, profondeur);
+        executer_commande(c, pile, ret, profondeur);
         n = depiler_int(pile);
     }
 
@@ -105,10 +105,17 @@ void mysterieuze(pile_cmd *pile) {
 }
 
 void exec(pile_cmd *pile, int *ret, int *profondeur) {
+    char commande;
     pile_cmd *groupe;
 
-    groupe = depiler_groupe_commandes(pile);
-    executer_groupe_commandes(groupe, ret, profondeur);
+    if (pile->tete->valeur == '}') {
+        groupe = depiler_groupe_commandes(pile);
+        if (groupe == NULL) return;
+        executer_groupe_commandes(groupe, ret, profondeur);
+    } else {
+        commande = depiler_char(pile);
+        executer_commande(commande, pile, ret, profondeur);
+    }
 }
 
 void echange(pile_cmd *pile) {
@@ -146,21 +153,32 @@ void clone(pile_cmd *pile) {
     }
 }
 
+void boucle(pile_cmd *pile_commandes, int *ret, int *profondeur) {
+    int n;
+    pile_cmd *cmd;
+    
+    n = depiler_int(pile_commandes);
+    cmd = depiler_groupe_commandes(pile_commandes);
+    while (n > 0) {
+        executer_groupe_commandes(cmd, ret, profondeur);
+        n--;
+    }
+}
+
 /* Ignore la commande ou le groupe de commandes au sommet de la pile */
 void ignore_commande(pile_cmd *pile) {
     pile_cmd *groupe;
 
-    if (pile->tete->valeur != '}') {
+    printf("tete : %c\n", pile->tete->valeur);
+    if (pile->tete->valeur == '}') {
         groupe = depiler_groupe_commandes(pile);
-        free(groupe);
-        return;
-    }
-    depiler_char(pile);
+        afficher_pile(groupe);
+    } else depiler_char(pile);
 }
 ////////////
 
 /* Transforme un char en opération sur la carte */
-void executer_commandes(char commande, pile_cmd *pile_commandes, int *ret, int *profondeur) {
+void executer_commande(char commande, pile_cmd *pile_commandes, int *ret, int *profondeur) {
     *ret = REUSSI;
 
     printf("exec %c\n", commande);
@@ -202,8 +220,11 @@ void executer_commandes(char commande, pile_cmd *pile_commandes, int *ret, int *
         break;
 
     case 'C':
-        if (*profondeur > 0) empiler_char(pile_commandes, commande);
-        else clone(pile_commandes);
+        clone(pile_commandes);
+        break;
+
+    case 'B':
+        boucle(pile_commandes, ret, profondeur);
         break;
 
     case '!':
@@ -283,7 +304,7 @@ int interprete(sequence_t *seq_instructions, bool debug) {
     while (cel_commande != NULL) {
         commande = cel_commande->command;
 
-        executer_commandes(commande, pile_commandes, &ret, &profondeur);
+        executer_commande(commande, pile_commandes, &ret, &profondeur);
         if (ret == VICTOIRE)
             return VICTOIRE; /* on a atteint la cible */
         if (ret == RATE)
