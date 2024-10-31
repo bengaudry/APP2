@@ -28,6 +28,8 @@ cellule_pile_cmd *depiler(pile_cmd*);
 int depiler_int(pile_cmd*);
 char depiler_char(pile_cmd*);
 
+int taille_pile(pile_cmd*);
+
 /* 
 Renvoie le premier groupe de commandes trouvé dans la pile 
 Exemple :

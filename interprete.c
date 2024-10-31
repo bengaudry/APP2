@@ -110,7 +110,6 @@ void exec(pile_cmd *pile, int *ret, int *profondeur) {
 
     if (pile->tete->valeur == '}') {
         groupe = depiler_groupe_commandes(pile);
-        if (groupe == NULL) return;
         executer_groupe_commandes(groupe, ret, profondeur);
     } else {
         commande = depiler_char(pile);
