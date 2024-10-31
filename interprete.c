@@ -97,11 +97,33 @@ void execution_conditionnelle(pile_cmd *pile, int *ret, int *profondeur) {
     pile = n == 0 ? F : V;
 
     // On exécute les commandes stockées dans la pile
-    executer_groupe_commandes(pile, ret, profondeur);
+    executer_groupe_commandes(pile, pile, ret, profondeur);
 }
 
 void mysterieuze(pile_cmd *pile) {
-    return;
+    int i;
+    char c;
+    type_cmd t;
+    cellule_pile_cmd *cel_pre,*cel_deb,*cel_fin;
+
+    if (taille_pile(pile) > 3){
+        cel_pre = pile->tete;
+        for (i = 0; i < taille_pile(pile) - 4; i++){
+            cel_pre = cel_pre->suivant;
+        }
+        cel_deb = cel_pre->suivant;
+        cel_fin = cel_deb->suivant->suivant;
+        cel_pre->suivant = NULL;
+        cel_fin->suivant = pile->tete;
+        pile->tete = cel_deb;
+    }
+
+    c = pile->tete->suivant->valeur;
+    t = pile->tete->suivant->type;
+    pile->tete->suivant->valeur = pile->tete->suivant->suivant->valeur;
+    pile->tete->suivant->type = pile->tete->suivant->suivant->type;
+    pile->tete->suivant->suivant->valeur = c;
+    pile->tete->suivant->suivant->type = t;
 }
 
 void exec(pile_cmd *pile, int *ret, int *profondeur) {
@@ -110,7 +132,7 @@ void exec(pile_cmd *pile, int *ret, int *profondeur) {
 
     if (pile->tete->valeur == '}') {
         groupe = depiler_groupe_commandes(pile);
-        executer_groupe_commandes(groupe, ret, profondeur);
+        executer_groupe_commandes(pile, groupe, ret, profondeur);
     } else {
         commande = depiler_char(pile);
         executer_commande(commande, pile, ret, profondeur);
@@ -159,7 +181,7 @@ void boucle(pile_cmd *pile_commandes, int *ret, int *profondeur) {
     n = depiler_int(pile_commandes);
     cmd = depiler_groupe_commandes(pile_commandes);
     while (n > 0) {
-        executer_groupe_commandes(cmd, ret, profondeur);
+        executer_groupe_commandes(pile_commandes, cmd, ret, profondeur);
         n--;
     }
 }
@@ -209,8 +231,7 @@ void executer_commande(char commande, pile_cmd *pile_commandes, int *ret, int *p
         break;
 
     case 'Z':
-        if (*profondeur > 0) empiler_char(pile_commandes, commande);
-        else mysterieuze(pile_commandes);
+        mysterieuze(pile_commandes);
         break;
 
     case 'X':
@@ -219,7 +240,8 @@ void executer_commande(char commande, pile_cmd *pile_commandes, int *ret, int *p
         break;
 
     case 'C':
-        clone(pile_commandes);
+        if (*profondeur > 0) empiler_char(pile_commandes, commande);
+        else clone(pile_commandes);
         break;
 
     case 'B':

@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include "pile.h"
 #include "interprete.h"
+#include "curiosity.h"
 
 pile_cmd *init_pile(void) {
     pile_cmd *pile;
@@ -77,7 +78,7 @@ char depiler_char(pile_cmd *pile) {
     return c;
 }
 
-int taille(pile_cmd *pile) {
+int taille_pile(pile_cmd *pile) {
     int n;
     cellule_pile_cmd *cel;
 
@@ -116,12 +117,13 @@ pile_cmd *depiler_groupe_commandes(pile_cmd *pile) {
     return groupe_cmd;
 }
 
-void executer_groupe_commandes(pile_cmd *groupe, int *ret, int *profondeur) {
+void executer_groupe_commandes(pile_cmd *pile_principale, pile_cmd *groupe, int *ret, int *profondeur) {
     cellule_pile_cmd *cel;
 
     cel = groupe->tete;
     while (cel != NULL) {
-        executer_commande(cel->valeur, groupe, ret, profondeur);
+        executer_commande(cel->valeur, pile_principale, ret, profondeur);
+        if (*ret == VICTOIRE) return;
         cel = cel->suivant;
     }
 }
@@ -132,7 +134,7 @@ void afficher_pile(pile_cmd *pile) {
 
     cel = pile->tete;
     if (cel == NULL) printf("<PILE VIDE>\n");
-    else printf("TAILLE : %d\n", taille(pile));
+    else printf("TAILLE : %d\n", taille_pile(pile));
     for (i = 0; cel != NULL; i++) {
         printf("[%d] | %s %c\n", i, cel->type == INT ? "INT" : "CHAR", cel->valeur);
         cel = cel->suivant;

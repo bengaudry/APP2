@@ -37,7 +37,7 @@ Exemple :
 */
 pile_cmd *depiler_groupe_commandes(pile_cmd *pile);
 
-void executer_groupe_commandes(pile_cmd *groupe, int *ret, int *profondeur);
+void executer_groupe_commandes(pile_cmd *pile_principale, pile_cmd *groupe, int *ret, int *profondeur);
 
 /* Inverse une pile (a1, a2, ..., an => an, ..., a2, a1)*/
 void inverser_pile(pile_cmd*);
